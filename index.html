@@ -86,9 +86,6 @@ html, body {
 <audio id="music" src="music.mp3"></audio>
 
 <script>
-const photosCount = 20;
-let current = 1;
-
 const texts = [
   "2002 год стал самым важным в нашей жизни",
   "С твоим появлением мир стал другим",
@@ -104,7 +101,11 @@ const texts = [
   "Мама и папа 🤍"
 ];
 
+const photosCount = texts.length;
+let current = 1;
 let textIndex = 0;
+let intervalId = null;
+let started = false;
 
 const slide = document.getElementById("slide");
 const text = document.getElementById("text");
@@ -112,12 +113,20 @@ const start = document.getElementById("start");
 const music = document.getElementById("music");
 const videoBtn = document.getElementById("videoBtn");
 
+music.loop = true;
+
 function startShow() {
+  if (started) return;
+  started = true;
+
   start.style.display = "none";
   music.play().catch(() => {});
   showText();
-  setInterval(changePhoto, 7000);
+
+  intervalId = setInterval(changePhoto, 7000);
 }
+
+start.addEventListener("click", startShow);
 
 document.addEventListener("keydown", e => {
   if (e.key === "Enter") startShow();
@@ -128,7 +137,11 @@ function changePhoto() {
 
   setTimeout(() => {
     current++;
-    if (current > photosCount) current = photosCount;
+    if (current > photosCount) {
+      clearInterval(intervalId);
+      return;
+    }
+
     slide.src = `photos/${String(current).padStart(2,'0')}.jpg`;
     slide.style.opacity = 1;
     showText();
