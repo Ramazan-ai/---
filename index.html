@@ -142,25 +142,23 @@ html, body {
 <audio id="music" src="music.mp3" loop></audio>
 
 <script>
-const photosCount = 20;
-let current = 1;
-
-const texts = [
-  "2002 год стал самым важным в нашей жизни",
-  "С твоим появлением мир стал другим",
-  "Мы видели, как ты росла",
-  "Как училась, мечтала, искала себя",
-  "Иногда было непросто",
-  "Но ты всегда находила силы идти дальше",
-  "Мы гордимся тобой каждый день",
-  "Ты — наше счастье",
-  "Ты — наша любовь",
-  "С днём рождения, родная",
-  "Мы всегда рядом",
-  "Мама и папа 🤍"
+const slides = [
+  { photo: "01.jpg", text: "2002 год стал самым важным в нашей жизни" },
+  { photo: "02.jpg", text: "С твоим появлением мир стал другим" },
+  { photo: "03.jpg", text: "Мы видели, как ты росла" },
+  { photo: "04.jpg", text: "Как училась, мечтала, искала себя" },
+  { photo: "05.jpg", text: "Иногда было непросто" },
+  { photo: "06.jpg", text: "Но ты всегда находила силы идти дальше" },
+  { photo: "07.jpg", text: "Мы гордимся тобой каждый день" },
+  { photo: "08.jpg", text: "Ты — наше счастье" },
+  { photo: "09.jpg", text: "Ты — наша любовь" },
+  { photo: "10.jpg", text: "С днём рождения, родная" },
+  { photo: "11.jpg", text: "Мы всегда рядом" },
+  { photo: "12.jpg", text: "Мама и папа 🤍", final: true }
 ];
 
-let textIndex = 0;
+let index = 0;
+let started = false;
 
 const slide = document.getElementById("slide");
 const text = document.getElementById("text");
@@ -168,38 +166,26 @@ const music = document.getElementById("music");
 const fade = document.getElementById("fade");
 const videoBtn = document.getElementById("videoBtn");
 
-music.loop = true;
+music.volume = 0.6;
 
-function startShow() {
-  start.style.display = "none";
-  music.play().catch(() => {});
-  showText();
-  setInterval(changePhoto, 7000);
+function fadeOutMusic() {
+  const f = setInterval(() => {
+    if (music.volume > 0.02) music.volume -= 0.02;
+    else {
+      music.volume = 0;
+      clearInterval(f);
+    }
+  }, 200);
 }
 
-start.addEventListener("click", startShow);
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Enter") startShow();
-});
-
-function changePhoto() {
-  slide.style.opacity = 0;
-
-  setTimeout(() => {
-    current++;
-    if (current > photosCount) current = photosCount;
-    slide.src = `photos/${String(current).padStart(2,'0')}.jpg`;
-    slide.style.opacity = 1;
-    showText();
-  }, 2000);
-}
-
-function showText() {
-  if (textIndex >= texts.length) {
-    videoBtn.style.opacity = 1;
-    videoBtn.style.pointerEvents = "auto";
-    videoBtn.focus();
+function showSlide() {
+  if (index >= slides.length) {
+    fadeOutMusic();
+    fade.style.opacity = 1;
+    setTimeout(() => {
+      videoBtn.style.opacity = 1;
+      videoBtn.style.pointerEvents = "auto";
+    }, 3000);
     return;
   }
 
@@ -230,7 +216,7 @@ function start() {
   started = true;
 
   document.documentElement.requestFullscreen?.();
-  music.play().catch(()=>{});
+  music.play().catch(() => {});
   setTimeout(() => text.style.opacity = 0, 1500);
   showSlide();
 }
@@ -241,6 +227,8 @@ videoBtn.onclick = () => {
   window.location.href = "https://youtube.com/ТВОЯ_ССЫЛКА";
 };
 </script>
+
+
 
 
 </body>
