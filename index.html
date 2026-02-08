@@ -12,16 +12,18 @@ html, body {
   background: black;
   overflow: hidden;
   font-family: Arial, sans-serif;
+  cursor: pointer;
 }
 
 /* Фото */
 #slide {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 110%;
+  height: 110%;
   object-fit: cover;
-  opacity: 1;
-  transition: opacity 2s ease-in-out;
+  opacity: 0;
+  transform: scale(1);
+  transition: opacity 2s ease-in-out, transform 7s ease-in-out;
 }
 
 /* Текст */
@@ -36,22 +38,25 @@ html, body {
   text-shadow: 0 3px 12px rgba(0,0,0,0.9);
   opacity: 0;
   transition: opacity 2s;
+  animation: breathe 6s ease-in-out infinite;
 }
 
-/* Экран старта */
-#start {
+@keyframes breathe {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+
+/* Затемнение */
+#fade {
   position: absolute;
   inset: 0;
   background: black;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34px;
-  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 3s;
 }
 
-/* Кнопка YouTube */
+/* Кнопка */
 #videoBtn {
   position: absolute;
   bottom: 8%;
@@ -65,92 +70,158 @@ html, body {
   border-radius: 40px;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 2s, transform 2s;
+  animation: pulse 2.5s infinite;
 }
 
-#videoBtn:focus {
-  outline: none;
-  box-shadow: 0 0 0 4px white;
+@keyframes pulse {
+  0%,100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.06); }
+}
+
+#videoBtn:hover {
+  transform: translateX(-50%) scale(1.08);
+}
+
+/* Кинополосы */
+#bars::before,
+#bars::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  width: 100%;
+  height: 6vh;
+  background: black;
+  z-index: 10;
+  pointer-events: none;
+}
+#bars::before { top: 0; }
+#bars::after { bottom: 0; }
+
+/* Плёночное зерно */
+#grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  animation: grainMove 0.6s steps(2) infinite;
+}
+
+@keyframes grainMove {
+  0% { transform: translate(0,0); }
+  25% { transform: translate(-1%,1%); }
+  50% { transform: translate(1%,-1%); }
+  75% { transform: translate(-1%,-1%); }
+  100% { transform: translate(0,0); }
+}
+
+/* Телефон */
+@media (max-width: 768px) {
+  #text {
+    font-size: 26px;
+    padding: 0 24px;
+  }
+  #videoBtn {
+    font-size: 22px;
+    padding: 18px 36px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div id="start">Нажмите OK 🤍</div>
-
 <img id="slide" src="photos/01.jpg">
-<div id="text"></div>
+<div id="text">Нажми в любом месте 🤍</div>
+<div id="fade"></div>
+<button id="videoBtn">Посмотри 🤍</button>
+<div id="bars"></div>
+<div id="grain"></div>
 
-<button id="videoBtn" tabindex="0">Посмотри 🤍</button>
-
-<audio id="music" src="music.mp3"></audio>
+<audio id="music" src="music.mp3" loop></audio>
 
 <script>
-const photosCount = 20;
-let current = 1;
-
-const texts = [
-  "2002 год стал самым важным в нашей жизни",
-  "С твоим появлением мир стал другим",
-  "Мы видели, как ты росла",
-  "Как училась, мечтала, искала себя",
-  "Иногда было непросто",
-  "Но ты всегда находила силы идти дальше",
-  "Мы гордимся тобой каждый день",
-  "Ты — наше счастье",
-  "Ты — наша любовь",
-  "С днём рождения, родная",
-  "Мы всегда рядом",
-  "Мама и папа 🤍"
+const slides = [
+  { photo: "01.jpg", text: "2002 год стал самым важным в нашей жизни" },
+  { photo: "02.jpg", text: "С твоим появлением мир стал другим" },
+  { photo: "03.jpg", text: "Мы видели, как ты росла" },
+  { photo: "04.jpg", text: "Как училась, мечтала, искала себя" },
+  { photo: "05.jpg", text: "Иногда было непросто" },
+  { photo: "06.jpg", text: "Но ты всегда находила силы идти дальше" },
+  { photo: "07.jpg", text: "Мы гордимся тобой каждый день" },
+  { photo: "08.jpg", text: "Ты — наше счастье" },
+  { photo: "09.jpg", text: "Ты — наша любовь" },
+  { photo: "10.jpg", text: "С днём рождения, родная" },
+  { photo: "11.jpg", text: "Мы всегда рядом" },
+  { photo: "12.jpg", text: "Мама и папа 🤍", final: true }
 ];
 
-let textIndex = 0;
+let index = 0;
+let started = false;
 
 const slide = document.getElementById("slide");
 const text = document.getElementById("text");
-const start = document.getElementById("start");
 const music = document.getElementById("music");
+const fade = document.getElementById("fade");
 const videoBtn = document.getElementById("videoBtn");
 
-function startShow() {
-  start.style.display = "none";
-  music.play().catch(() => {});
-  showText();
-  setInterval(changePhoto, 7000);
+music.volume = 0.6;
+
+function fadeOutMusic() {
+  const f = setInterval(() => {
+    if (music.volume > 0.02) music.volume -= 0.02;
+    else {
+      music.volume = 0;
+      clearInterval(f);
+    }
+  }, 200);
 }
 
-document.addEventListener("keydown", e => {
-  if (e.key === "Enter") startShow();
-});
-
-function changePhoto() {
-  slide.style.opacity = 0;
-
-  setTimeout(() => {
-    current++;
-    if (current > photosCount) current = photosCount;
-    slide.src = `photos/${String(current).padStart(2,'0')}.jpg`;
-    slide.style.opacity = 1;
-    showText();
-  }, 2000);
-}
-
-function showText() {
-  if (textIndex >= texts.length) {
-    videoBtn.style.opacity = 1;
-    videoBtn.style.pointerEvents = "auto";
-    videoBtn.focus();
+function showSlide() {
+  if (index >= slides.length) {
+    fadeOutMusic();
+    fade.style.opacity = 1;
+    setTimeout(() => {
+      videoBtn.style.opacity = 1;
+      videoBtn.style.pointerEvents = "auto";
+    }, 3000);
     return;
   }
 
+  slide.style.opacity = 0;
   text.style.opacity = 0;
+  slide.style.transform = "scale(1)";
 
   setTimeout(() => {
-    text.innerText = texts[textIndex];
+    slide.src = "photos/" + slides[index].photo;
+    text.innerText = slides[index].text;
+
+    if (slides[index].final) {
+      text.style.letterSpacing = "3px";
+      text.style.fontSize = "36px";
+    }
+
+    slide.style.opacity = 1;
+    slide.style.transform = "scale(1.08)";
     text.style.opacity = 1;
-    textIndex++;
+
+    index++;
+    setTimeout(showSlide, slides[index-1].final ? 12000 : 7000);
   }, 2000);
 }
+
+function start() {
+  if (started) return;
+  started = true;
+
+  document.documentElement.requestFullscreen?.();
+  music.play().catch(()=>{});
+  setTimeout(() => text.style.opacity = 0, 1500);
+  showSlide();
+}
+
+document.body.addEventListener("click", start);
 
 videoBtn.onclick = () => {
   window.location.href = "https://youtube.com/ТВОЯ_ССЫЛКА";
