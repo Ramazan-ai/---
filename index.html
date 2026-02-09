@@ -12,7 +12,7 @@ html, body {
   background: black;
   overflow: hidden;
   font-family: Arial, sans-serif;
-  cursor: pointer;
+  cursor: none;
 }
 
 /* Фото */
@@ -23,13 +23,12 @@ html, body {
   object-fit: cover;
   opacity: 0;
   transform: scale(1);
-  transition: opacity 2s ease-in-out, transform 7s ease-in-out;
 }
 
 /* Текст */
 #text {
   position: absolute;
-  bottom: 20%;
+  bottom: 22%;
   width: 100%;
   text-align: center;
   color: white;
@@ -37,8 +36,8 @@ html, body {
   padding: 0 60px;
   text-shadow: 0 3px 12px rgba(0,0,0,0.9);
   opacity: 0;
-  transition: opacity 2s;
   animation: breathe 6s ease-in-out infinite;
+  transition: opacity 2s;
 }
 
 @keyframes breathe {
@@ -59,7 +58,7 @@ html, body {
 /* Кнопка */
 #videoBtn {
   position: absolute;
-  bottom: 8%;
+  bottom: 10%;
   left: 50%;
   transform: translateX(-50%);
   padding: 22px 48px;
@@ -70,17 +69,13 @@ html, body {
   border-radius: 40px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 2s, transform 2s;
+  transition: opacity 2s;
   animation: pulse 2.5s infinite;
 }
 
 @keyframes pulse {
   0%,100% { transform: translateX(-50%) scale(1); }
   50% { transform: translateX(-50%) scale(1.06); }
-}
-
-#videoBtn:hover {
-  transform: translateX(-50%) scale(1.08);
 }
 
 /* Кинополосы */
@@ -169,6 +164,12 @@ const videoBtn = document.getElementById("videoBtn");
 
 music.volume = 0.6;
 
+/* preload */
+slides.forEach(s => {
+  const img = new Image();
+  img.src = "photos/" + s.photo;
+});
+
 function fadeOutMusic() {
   const f = setInterval(() => {
     if (music.volume > 0.02) music.volume -= 0.02;
@@ -192,7 +193,6 @@ function showSlide() {
 
   const current = slides[index];
 
-  // сброс
   text.style.letterSpacing = "normal";
   text.style.fontSize = "";
   slide.style.transition = "none";
@@ -200,12 +200,12 @@ function showSlide() {
   slide.style.transform = "scale(1)";
   text.style.opacity = 0;
 
-  // ⚠️ ВАЖНО: сначала src
-  slide.src = "photos/" + current.photo;
-  text.innerText = current.text;
+  let fired = false;
 
-  // даём LG отрисовать изображение
-  slide.onload = () => {
+  const onReady = () => {
+    if (fired) return;
+    fired = true;
+
     slide.style.transition = "opacity 2s ease-in-out, transform 7s ease-in-out";
     text.style.transition = "opacity 2s";
 
@@ -214,7 +214,6 @@ function showSlide() {
       text.style.fontSize = "36px";
     }
 
-    // fade-in
     requestAnimationFrame(() => {
       slide.style.opacity = 1;
       text.style.opacity = 1;
@@ -224,28 +223,37 @@ function showSlide() {
     index++;
     setTimeout(showSlide, current.final ? 12000 : 7000);
   };
-}
 
+  slide.onload = onReady;
+  slide.src = "photos/" + current.photo;
+  text.innerText = current.text;
+
+  if (slide.complete) {
+    setTimeout(onReady, 50);
+  }
+}
 
 function start() {
   if (started) return;
   started = true;
 
-  document.documentElement.requestFullscreen?.();
   music.play().catch(() => {});
   setTimeout(() => text.style.opacity = 0, 1500);
   showSlide();
 }
 
 document.body.addEventListener("click", start);
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    if (!started) start();
+    else if (videoBtn.style.opacity == 1) videoBtn.click();
+  }
+});
 
 videoBtn.onclick = () => {
-  window.location.href = "https://youtube.com/ТВОЯ_ССЫЛКА";
+  window.location.href = "https://www.youtube.com/watch?v=ТВОЙ_ID";
 };
 </script>
-
-
-
 
 </body>
 </html>
