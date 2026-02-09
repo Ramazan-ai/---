@@ -167,7 +167,7 @@ music.volume = 0.6;
 /* preload */
 slides.forEach(s => {
   const img = new Image();
-  img.src = "photos/" + s.photo;
+  img.src = "photos/" + s.photos;
 });
 
 function fadeOutMusic() {
@@ -225,7 +225,7 @@ function showSlide() {
   };
 
   slide.onload = onReady;
-  slide.src = "photos/" + current.photo;
+  slide.src = "photos/" + current.photos;
   text.innerText = current.text;
 
   if (slide.complete) {
