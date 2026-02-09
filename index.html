@@ -132,7 +132,8 @@ html, body {
 
 <body>
 
-<img id="slide" src="photos/01.jpg">
+<img id="slide">
+
 <div id="text">Нажми в любом месте 🤍</div>
 <div id="fade"></div>
 <button id="videoBtn">Посмотри 🤍</button>
@@ -189,27 +190,42 @@ function showSlide() {
     return;
   }
 
+  const current = slides[index];
+
+  // сброс
+  text.style.letterSpacing = "normal";
+  text.style.fontSize = "";
+  slide.style.transition = "none";
   slide.style.opacity = 0;
-  text.style.opacity = 0;
   slide.style.transform = "scale(1)";
+  text.style.opacity = 0;
 
-  setTimeout(() => {
-    slide.src = "photos/" + slides[index].photo;
-    text.innerText = slides[index].text;
+  // ⚠️ ВАЖНО: сначала src
+  slide.src = "photos/" + current.photo;
+  text.innerText = current.text;
 
-    if (slides[index].final) {
+  // даём LG отрисовать изображение
+  slide.onload = () => {
+    slide.style.transition = "opacity 2s ease-in-out, transform 7s ease-in-out";
+    text.style.transition = "opacity 2s";
+
+    if (current.final) {
       text.style.letterSpacing = "3px";
       text.style.fontSize = "36px";
     }
 
-    slide.style.opacity = 1;
-    slide.style.transform = "scale(1.08)";
-    text.style.opacity = 1;
+    // fade-in
+    requestAnimationFrame(() => {
+      slide.style.opacity = 1;
+      text.style.opacity = 1;
+      slide.style.transform = "scale(1.08)";
+    });
 
     index++;
-    setTimeout(showSlide, slides[index-1].final ? 12000 : 7000);
-  }, 2000);
+    setTimeout(showSlide, current.final ? 12000 : 7000);
+  };
 }
+
 
 function start() {
   if (started) return;
