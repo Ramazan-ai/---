@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Для нашей дочки</title>
+
 <style>
+
 html, body {
   margin: 0;
   width: 100%;
@@ -16,6 +18,7 @@ html, body {
 }
 
 /* Фото */
+
 #slide {
   position: absolute;
   width: 100%;
@@ -24,10 +27,11 @@ html, body {
   opacity: 0;
   transform: scale(1);
   background: black;
-  transition: opacity 2s, transform 7s;
+
 }
 
 /* Текст */
+
 #text {
   position: absolute;
   bottom: 22%;
@@ -42,6 +46,7 @@ html, body {
 }
 
 /* Финальный текст */
+
 #finalText {
   position: absolute;
   bottom: 35%;
@@ -56,6 +61,7 @@ html, body {
 }
 
 /* Кнопка */
+
 #videoBtn {
   position: absolute;
   bottom: 10%;
@@ -79,6 +85,7 @@ html, body {
 }
 
 /* Плёночное зерно */
+
 #grain {
   position: fixed;
   inset: 0;
@@ -87,13 +94,14 @@ html, body {
   mix-blend-mode: overlay;
 }
 
-/* Адаптив для телефона */
 @media (max-width: 768px) {
   #text { font-size: 26px; padding: 0 24px; }
   #videoBtn { font-size: 22px; padding: 18px 36px; }
 }
+
 </style>
 </head>
+
 <body>
 
 <img id="slide">
@@ -102,9 +110,10 @@ html, body {
 <button id="videoBtn">Посмотри 🤍</button>
 <div id="grain"></div>
 
-<audio id="music" src="music.mp3" preload="auto"></audio>
+<audio id="music" src="music.mp3"></audio>
 
 <script>
+
 const slides = [
   { photos: "01.jpg", text: "2002 год стал самым важным в нашей жизни" },
   { photos: "02.jpg", text: "С твоим появлением мир стал другим" },
@@ -131,32 +140,57 @@ const videoBtn = document.getElementById("videoBtn");
 
 music.volume = 0.6;
 
-// preload images
+/* preload */
+
 slides.forEach(s => {
   const img = new Image();
   img.src = "photos/" + s.photos;
 });
 
-// Если музыка кончилась — перезапускаем
-music.addEventListener('ended', () => {
-  if (started) music.currentTime = 0; music.play();
-});
+/* затухание музыки */
 
-// Показ слайдов
+function fadeOutMusic() {
+  const f = setInterval(() => {
+    if (music.volume > 0.02) music.volume -= 0.02;
+    else {
+      music.pause();
+      clearInterval(f);
+    }
+  }, 200);
+}
+
+/* показ слайдов */
+
 function showSlide() {
+
   if (index >= slides.length) {
+
+    fadeOutMusic();
+
     finalText.innerText = "Спасибо за всё, родная 🤍";
-    setTimeout(() => { finalText.style.opacity = 1; finalText.style.transform = "translateY(0)"; }, 1000);
-    setTimeout(() => { videoBtn.style.opacity = 1; videoBtn.style.pointerEvents = "auto"; }, 3500);
+
+    setTimeout(() => {
+      finalText.style.opacity = 1;
+      finalText.style.transform = "translateY(0)";
+    }, 1000);
+
+    setTimeout(() => {
+      videoBtn.style.opacity = 1;
+      videoBtn.style.pointerEvents = "auto";
+    }, 3500);
+
     slide.style.transform = "scale(1.05)";
+
     return;
   }
 
   const current = slides[index];
+
   slide.style.opacity = 0;
   text.style.opacity = 0;
 
   slide.onload = () => {
+    slide.style.transition = "opacity 2s ease, transform 7s ease";
     slide.style.opacity = 1;
     slide.style.transform = "scale(1.05)";
     text.innerText = current.text;
@@ -164,12 +198,14 @@ function showSlide() {
   };
 
   slide.src = "photos/" + current.photos;
+
   index++;
 
   setTimeout(showSlide, current.final ? 12000 : 7000);
 }
 
-// старт по клику
+/* старт */
+
 function start() {
   if (started) return;
   started = true;
@@ -183,6 +219,7 @@ document.body.addEventListener("click", start);
 videoBtn.onclick = () => {
   window.location.href = "https://www.youtube.com/watch?v=ТВОЙ_ID";
 };
+
 </script>
 
 </body>
